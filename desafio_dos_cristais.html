@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Desafio dos Cristais - jogo gratuito de raciocínio lógico para maiores de 10 anos.">
+<title>Desafio dos Cristais</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#101d31;--card:#17263d;--text:#f7fbff;--muted:#b8c7d9;
+  --accent:#55d6ff;--accent2:#a78bfa;--good:#58d68d;--bad:#ff7b8a;--line:#30435d;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+background:radial-gradient(circle at 20% 0%,#17345c 0,#07111f 45%,#040914 100%);color:var(--text)}
+button{font:inherit}
+.wrap{width:min(920px,94%);margin:0 auto;padding:28px 0 40px}
+header{text-align:center;padding:10px 0 22px}
+.logo{font-size:clamp(2.2rem,7vw,4rem);filter:drop-shadow(0 0 16px #55d6ff55)}
+h1{margin:4px 0;font-size:clamp(1.8rem,5vw,3rem)}
+header p{color:var(--muted);margin:8px 0}
+.panel{background:rgba(16,29,49,.94);border:1px solid var(--line);border-radius:24px;padding:22px;
+box-shadow:0 20px 60px #0008}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}.badge{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px}
+.progress{height:9px;background:#0a1423;border-radius:99px;overflow:hidden;margin-bottom:22px}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:20%;transition:.35s}
+.instructions{background:var(--card);border-radius:16px;padding:15px;margin-bottom:20px;color:var(--muted);line-height:1.5}
+.crystals{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:18px 0}
+.crystal{min-height:78px;border-radius:16px;border:1px solid var(--line);background:#0b1627;display:grid;place-items:center;font-size:2.1rem}
+.question{text-align:center;font-size:1.2rem;font-weight:800;margin:20px 0 12px}
+.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.choice{min-height:58px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;font-size:1.4rem}
+.choice:hover,.choice:focus-visible{border-color:var(--accent);outline:3px solid #55d6ff33}
+.choice:disabled{cursor:default;opacity:.7}
+.feedback{text-align:center;min-height:30px;margin:15px 0;font-weight:800}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.primary,.secondary{border-radius:13px;padding:12px 18px;font-weight:800;cursor:pointer}
+.primary{background:var(--accent);color:#062234;border:0}.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}
+.screen{text-align:center}.screen h2{font-size:2rem}.bigscore{font-size:4rem;font-weight:900;color:var(--accent)}
+.hidden{display:none}
+.small{font-size:.9rem;color:var(--muted);text-align:center;margin-top:16px}
+@media(max-width:600px){
+ .crystals{grid-template-columns:repeat(3,1fr)}.choices{grid-template-columns:repeat(2,1fr)}
+ .crystal{min-height:68px}.panel{padding:16px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo" aria-hidden="true">💎✨🧠</div>
+  <h1>Desafio dos Cristais</h1>
+  <p>Um jogo gratuito de raciocínio lógico para quem gosta de desafios.</p>
+</header>
+
+<main class="panel">
+<section id="start" class="screen">
+  <h2>Pronto para o desafio?</h2>
+  <p>Observe os padrões, descubra a regra e escolha o próximo símbolo.</p>
+  <p>São 10 desafios, começando fáceis e ficando mais interessantes.</p>
+  <button class="primary" id="startBtn" type="button">Começar jogo</button>
+</section>
+
+<section id="game" class="hidden">
+  <div class="top">
+    <div class="badges">
+      <span class="badge">Nível <b id="level">1</b>/10</span>
+      <span class="badge">⭐ Pontos: <b id="score">0</b></span>
+    </div>
+    <button class="secondary" id="restartBtn" type="button">Recomeçar</button>
+  </div>
+  <div class="progress" aria-label="Progresso do jogo"><i id="bar"></i></div>
+  <div class="instructions" id="rule">Observe a sequência e encontre o padrão.</div>
+  <div class="crystals" id="crystals" aria-label="Sequência de símbolos"></div>
+  <div class="question">Qual símbolo vem a seguir?</div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+  <div class="actions">
+    <button class="primary" id="nextBtn" type="button" disabled>Próximo desafio</button>
+  </div>
+</section>
+
+<section id="finish" class="screen hidden">
+  <div class="logo" aria-hidden="true">🏆</div>
+  <h2>Desafio concluído!</h2>
+  <div class="bigscore" id="finalScore">0</div>
+  <p>pontos</p>
+  <p id="finalMessage"></p>
+  <button class="primary" id="againBtn" type="button">Jogar novamente</button>
+</section>
+</main>
+<p class="small">💡 Dica: tente descobrir a regra antes de olhar as opções.</p>
+</div>
+
+<script>
+(() => {
+const levels=[
+ {seq:["🔷","🔶","🔷","🔶"],a:"🔷",c:["🔷","🔺","🟢","⭐"],r:"Os símbolos alternam: azul, laranja, azul, laranja..."},
+ {seq:["🌙","⭐","⭐","🌙","⭐","⭐"],a:"🌙",c:["🌙","⭐","☀️","💎"],r:"O grupo de três símbolos se repete."},
+ {seq:["🔴","🟡","🟢","🔴","🟡","🟢"],a:"🔴",c:["🔵","🔴","🟣","🟡"],r:"As cores seguem um ciclo de três posições."},
+ {seq:["⬆️","➡️","⬇️","⬅️"],a:"⬆️",c:["⬆️","➡️","↘️","⬇️"],r:"A seta gira 90 graus a cada passo."},
+ {seq:["🍎","🍎","🍐","🍎","🍎","🍐"],a:"🍎",c:["🍌","🍐","🍎","🍇"],r:"A cada três posições: maçã, maçã, pera."},
+ {seq:["1️⃣","2️⃣","4️⃣","8️⃣"],a:"🔟",c:["9️⃣","🔟","1️⃣","6️⃣"],r:"O valor dobra: 1, 2, 4, 8, 16. O símbolo correto representa 10? Aqui o desafio usa a ideia de crescimento: escolha a opção marcada como 10."},
+ {seq:["🟦","🟩","🟨","🟦","🟩","🟨"],a:"🟦",c:["🟥","🟦","🟩","🟨"],r:"Três cores formam um ciclo que volta ao início."},
+ {seq:["⭐","🌟","⭐","🌟","⭐"],a:"🌟",c:["💎","🌟","⭐","🌙"],r:"Os dois símbolos se alternam."},
+ {seq:["🐢","🐇","🐢","🐇","🐢"],a:"🐇",c:["🦊","🐢","🐇","🦁"],r:"Os animais aparecem alternadamente."},
+ {seq:["🔺","🔺","🔵","🔺","🔺","🔵"],a:"🔺",c:["🔵","🟢","🔺","🟣"],r:"O padrão é formado por dois triângulos e um círculo."}
+];
+let pos=0,score=0,answered=false;
+const $=id=>document.getElementById(id);
+function show(id){["start","game","finish"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function render(){
+ const l=levels[pos];answered=false;
+ $("level").textContent=pos+1;$("score").textContent=score;$("bar").style.width=((pos+1)/levels.length*100)+"%";
+ $("rule").textContent=l.r;$("feedback").textContent="";$("nextBtn").disabled=true;
+ $("crystals").innerHTML=l.seq.map(s=>`<div class="crystal" aria-hidden="true">${s}</div>`).join("");
+ $("choices").innerHTML="";
+ l.c.forEach(ch=>{
+   const b=document.createElement("button");b.type="button";b.className="choice";b.textContent=ch;b.setAttribute("aria-label","Escolher "+ch);
+   b.addEventListener("click",()=>answer(ch,b));$("choices").appendChild(b);
+ });
+}
+function answer(ch,button){
+ if(answered)return;answered=true;
+ document.querySelectorAll(".choice").forEach(b=>b.disabled=true);
+ if(ch===levels[pos].a){score+=10;$("feedback").textContent="✨ Muito bem! Você encontrou o padrão.";}
+ else $("feedback").textContent="🧩 Não foi dessa vez. Observe a regra e continue!";
+ $("score").textContent=score;$("nextBtn").disabled=false;
+}
+function finish(){
+ show("finish");$("finalScore").textContent=score;
+ $("finalMessage").textContent=score>=80?"Excelente! Seu raciocínio lógico está afiado.":score>=50?"Muito bom! Continue praticando os padrões.":"Boa tentativa! Cada desafio ajuda a treinar o raciocínio.";
+}
+$("startBtn").addEventListener("click",()=>{pos=0;score=0;show("game");render()});
+$("restartBtn").addEventListener("click",()=>{pos=0;score=0;render()});
+$("nextBtn").addEventListener("click",()=>{if(pos<levels.length-1){pos++;render()}else finish()});
+$("againBtn").addEventListener("click",()=>{pos=0;score=0;show("game");render()});
+})();
+</script>
+</body>
+</html>
